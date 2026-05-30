@@ -13,7 +13,7 @@ Z-Fish is a mobile-first fishing companion. Tell it *where* you’re fishing (an
 
 <p align="center">
   <a href="https://davidfliesen.github.io/z-fish">
-    <img src="assets/z-fish-preview.jpeg" alt="Z-Fish app preview" width="360" />
+    <img src="z-fish-preview.jpeg" alt="Z-Fish app preview" width="360" />
   </a>
 </p>
 
