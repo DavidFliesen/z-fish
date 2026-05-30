@@ -4,10 +4,18 @@
 
 Z-Fish is a mobile-first fishing companion. Tell it *where* you’re fishing (and optionally *when*), and it tells you what species are likely biting, how to catch them, and which **Z-Man** lures to throw given the live conditions on the water.
 
+### 🔗 Live demo → **[davidfliesen.github.io/z-fish](https://davidfliesen.github.io/z-fish)**
+
 ![Status](https://img.shields.io/badge/status-prototype%20v001-3ff0c4)
 ![Platform](https://img.shields.io/badge/platform-iOS%20%7C%20Android%20%7C%20Web-072730)
 ![License](https://img.shields.io/badge/license-MIT-ffc24b)
 ![AI](https://img.shields.io/badge/AI-open%20source-ff3b3b)
+
+<p align="center">
+  <a href="https://davidfliesen.github.io/z-fish">
+    <img src="assets/z-fish-preview.jpeg" alt="Z-Fish app preview" width="360" />
+  </a>
+</p>
 
 -----
 
@@ -99,7 +107,7 @@ Z-Fish is built on services and models that are free to use and, where models ar
 
 ## Disclaimer
 
-Z-Fish is an independent, unofficial project and is **not affiliated with, endorsed by, or sponsored by Z-Man Fishing Products**. *Z-Man®*, *ChatterBait®*, *ElaZtech®*, and all related product names are trademarks of their respective owner and are referenced here for identification and educational purposes only. Always check local regulations, licenses, and conditions before fishing.
+Z-Fish recommends **Z-Man** products simply because they’re the lures the developer personally prefers and fishes with — **not** because of any sponsorship or paid relationship. This is an independent, unofficial project and is **not affiliated with, endorsed by, or sponsored by Z-Man Fishing Products** in any way. *Z-Man®*, *ChatterBait®*, *ElaZtech®*, and all related product names are trademarks of their respective owner and are referenced here for identification and educational purposes only. Always check local regulations, licenses, and conditions before fishing.
 
 -----
 
