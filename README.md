@@ -8,8 +8,6 @@ Z-Fish is a mobile-first fishing companion. Tell it *where* you’re fishing (an
 
 ![Status](https://img.shields.io/badge/status-prototype%20v001-3ff0c4)
 ![Platform](https://img.shields.io/badge/platform-iOS%20%7C%20Android%20%7C%20Web-072730)
-![License](https://img.shields.io/badge/license-MIT-ffc24b)
-![AI](https://img.shields.io/badge/AI-open%20source-ff3b3b)
 
 <p align="center">
   <a href="https://davidfliesen.github.io/z-fish">
@@ -53,7 +51,7 @@ A single self-contained HTML file — no build step, no server, no API keys.
 
 ### Planned production architecture
 
-The full system moves the intelligence to a lightweight backend using **free, open-source models** — the parts that genuinely need persistence:
+The full system moves the intelligence to a lightweight backend using **free models and services** — the parts that genuinely need persistence:
 
 1. **Vectorized Z-Man catalog** — the full product line embedded with `sentence-transformers/all-MiniLM-L6-v2` into a **FAISS** index, so conditions and species map to the best lures by *meaning* rather than fixed lists.
 1. **New-product monitor** — a scheduled job that polls `zmanfishing.com/collections/2026-new-products`, diffs against the index, and auto-embeds anything new so the catalog stays current on its own.
@@ -93,14 +91,14 @@ No keys or accounts are required — the weather and geocoding services are free
 
 -----
 
-## Open-source & free by design
+## Free to run
 
-Z-Fish is built on services and models that are free to use and, where models are involved, open source:
+Z-Fish is built on services and models that are free to use:
 
 - **Open-Meteo** — weather & geocoding (no API key)
 - **sentence-transformers (all-MiniLM-L6-v2)** — embeddings *(planned)*
 - **FAISS** — vector search *(planned)*
-- **Llama 3.3** — open-weight LLM reasoning *(planned)*
+- **Llama 3.3** — LLM reasoning *(planned)*
 - **iNaturalist / GBIF** — biodiversity data *(planned)*
 
 -----
@@ -111,17 +109,11 @@ Z-Fish recommends **Z-Man** products simply because they’re the lures the deve
 
 -----
 
-## License
-
-Released under the **MIT License**. See `LICENSE` for details.
-
------
-
 ## 👤 About the Developer
 
 **David Fliesen** — *Hybrid Generative AI & Multimedia Developer* and founder of **Cibola Studios** (Summerville, SC).
 
-A U.S. Navy Combat Camera veteran with 20+ years across photography, video, voice-over, and character animation, David has worked on DoD simulation and virtual-agent projects and completed the **Purdue / Simplilearn Applied Generative AI Specialization**. He builds practical, AI-powered applications through an iterative, prototype-first workflow — Z-Fish being a recent example of pairing free open-source AI with real-world utility.
+A U.S. Navy Combat Camera veteran with 20+ years across photography, video, voice-over, and character animation, David has worked on DoD simulation and virtual-agent projects and completed the **Purdue / Simplilearn Applied Generative AI Specialization**. He builds practical, AI-powered applications through an iterative, prototype-first workflow — Z-Fish being a recent example of pairing free AI tooling with real-world utility.
 
 ### Connect
 
