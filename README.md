@@ -1,6 +1,6 @@
 # 🎣 Z-Fish
 
-**Sonar Field Guide — Powered by Z-Man®**
+**Sonar Field Guide — Z-Man Lure Picks**
 
 Z-Fish is a mobile-first fishing companion. Tell it *where* you’re fishing (and optionally *when*), and it tells you what species are likely biting, how to catch them, and which **Z-Man** lures to throw given the live conditions on the water.
 
