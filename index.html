@@ -112,6 +112,13 @@ input::placeholder{color:#4d7a78}
 .also .a .an{font-size:12px;font-weight:600}
 .also .a .as{font-size:10px;color:var(--mute);font-style:italic}
 
+/* no-water notice */
+.nowater{margin-top:14px;border:1px solid var(--line);border-radius:14px;padding:20px 16px;text-align:center;
+  background:linear-gradient(180deg,rgba(255,194,75,.06),transparent)}
+.nowater .nwicon{font-size:34px}
+.nowater .nwh{font-family:'Anton',sans-serif;font-size:20px;letter-spacing:.5px;margin-top:6px;color:var(--amber)}
+.nowater p{font-size:13px;line-height:1.55;color:#c7e6df;margin-top:8px}
+
 .chips{display:flex;gap:8px;margin-top:6px;flex-wrap:wrap}
 .chip{flex:1;min-width:90px;text-align:center;padding:11px 6px;border-radius:11px;cursor:pointer;
   background:#031b22;border:1px solid var(--line);font-size:13px;font-weight:600;color:var(--mute);
@@ -274,11 +281,11 @@ details[open] summary::before{content:"–"}
   <div id="results"></div>
 
   <div class="note" id="footNote">
-    <b>Prototype v006.</b> Search ramps, lakes, and addresses, drop a pin, or use GPS.
-    Species come from real iNaturalist records near those coordinates — worldwide:
-    fish outside the curated set are matched to a Z-Man lure type by feeding style.
-    Live Open-Meteo weather; on-device rules engine. New-product cards link to Z-Man.
-    All free, no keys. Next: vector-based lure matching, then optional AI tips.
+    <b>Prototype v007.</b> Search, drop a pin, or use GPS. Species come from real
+    iNaturalist records near those coordinates (worldwide, matched by feeding style
+    where needed). If there's no lake, river, or fish record nearby, Z-Fish now says
+    so instead of guessing. Live Open-Meteo weather; on-device rules engine; new-product
+    cards link to Z-Man. All free, no keys.
   </div>
 </div>
 
@@ -617,17 +624,37 @@ function matchSpecies(observed){
   return {present,extras};
 }
 
-// resolve species for a point: try tight radius, widen if sparse; fall back to water type
+// is there fishable water (lake / river / reservoir) within `radius` meters? (OpenStreetMap / Overpass)
+async function hasWaterNearby(lat,lon,radius){
+  const q=`[out:json][timeout:10];(`
+    +`nwr["natural"="water"](around:${radius},${lat},${lon});`
+    +`nwr["waterway"~"^(river|canal)$"](around:${radius},${lat},${lon});`
+    +`nwr["landuse"="reservoir"](around:${radius},${lat},${lon});`
+    +`);out count;`;
+  const u="https://overpass-api.de/api/interpreter?data="+encodeURIComponent(q);
+  const j=await (await fetch(u)).json();
+  const el=(j.elements||[])[0];
+  const total = el&&el.tags ? (parseInt(el.tags.total,10)||0) : (j.elements||[]).length;
+  return total>0;
+}
+
+// resolve species for a point. Priority: real fish records -> seasonal estimate only if water is actually there
+// -> otherwise tell the user there's no fishing spot here (e.g. a desert).
 async function resolveSpecies(lat,lon){
-  try{
-    let obs=await inatSpecies(lat,lon,18);
-    if(obs.length<6){ const wide=await inatSpecies(lat,lon,55); if(wide.length>obs.length) obs=wide; }
+  let obs=[];
+  try{ obs=await inatSpecies(lat,lon,20); }catch(e){ obs=[]; }
+  if(obs.length>0){
     const m=matchSpecies(obs);
     const g=generalize(m.extras);
-    const present=m.present.concat(g.gens);
-    if(present.length>0) return {mode:"observed", present, extras:g.leftover};
-  }catch(e){ /* fall through to seasonal */ }
-  return {mode:"seasonal", present:SPECIES[waterType].map(sp=>({...sp,obsCount:null,photo:""})), extras:[]};
+    return {mode:"observed", present:m.present.concat(g.gens), extras:g.leftover};
+  }
+  // no fish records nearby — is there even water here?
+  let water=null;
+  try{ water=await hasWaterNearby(lat,lon,6000); }catch(e){ water=null; }
+  if(water===true){
+    return {mode:"seasonal", present:SPECIES[waterType].map(sp=>({...sp,obsCount:null,photo:""})), extras:[]};
+  }
+  return {mode:"nowater"};
 }
 
 /* ---------- legacy geocode kept as fallback name ---------- */
@@ -755,6 +782,23 @@ async function runScan(){
 function render(geo,wx,asked,sp){
   const c=buildConditions(geo.lat,asked?$("when").value:null,wx);
   sp = sp || {mode:"seasonal",present:SPECIES[waterType].map(s=>({...s,obsCount:null,photo:""})),extras:[]};
+
+  /* no fishable water found here (e.g. dry land / desert) */
+  if(sp.mode==="nowater"){
+    const locName=geo.admin?`${geo.name}, ${geo.admin}`:geo.name;
+    $("results").innerHTML=`<div class="card">
+      <label class="lab">Scan Report</label>
+      <div style="font-family:'Anton',sans-serif;font-size:24px">${locName}</div>
+      <div style="font-family:'Space Mono',monospace;font-size:10px;color:var(--mute);margin-top:2px">${geo.lat.toFixed(3)}, ${geo.lon.toFixed(3)}</div>
+      <div class="nowater">
+        <div class="nwicon">🏜️</div>
+        <div class="nwh">No fishing waters found here</div>
+        <p>We couldn't find a lake, river, or reservoir — or any fish records — near this spot. It looks like dry land.</p>
+        <p>Try searching a lake or river by name, or drop a pin directly on the water.</p>
+      </div></div>`;
+    return;
+  }
+
   const list=sp.present.map(s=>({sp:s,a:activity(s,c),lures:pickLures(s,c)}))
             .sort((x,y)=>y.a.score-x.a.score);
   let html="";
@@ -767,7 +811,7 @@ function render(geo,wx,asked,sp){
   if(sp.mode==="observed"){
     html+=`<div class="srctag live"><span class="d"></span>Species observed near here · iNaturalist</div>`;
   }else{
-    html+=`<div class="srctag est"><span class="d"></span>Seasonal estimate · no local fish records found</div>`;
+    html+=`<div class="srctag est"><span class="d"></span>Seasonal estimate · water nearby, few fish records</div>`;
   }
   if(asked){
     const dt=new Date($("when").value);
