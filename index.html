@@ -216,11 +216,11 @@ details[open] summary::before{content:"–"}
   <div id="results"></div>
 
   <div class="note" id="footNote">
-    <b>Prototype v001.</b> Weather + geocoding are live & free via Open-Meteo (no key).
-    Fish activity and Z-Man lure matches run on an on-device rules engine.
-    The full build swaps in AI: a vector index of Z-Man's catalog
-    (sentence-transformers + FAISS) and Llama-3.3-70B reasoning, plus a daily
-    monitor of zmanfishing.com/collections/2026-new-products.
+    <b>Prototype v003.</b> Weather + geocoding are live & free via Open-Meteo (no key).
+    Species, lures, and new products now load from version-controlled JSON files
+    (the database). Fish activity and lure matches run on an on-device rules engine.
+    Next: location-driven species via iNaturalist/GBIF, then a vector index of
+    Z-Man's catalog and LLM reasoning.
   </div>
 </div>
 
@@ -251,95 +251,41 @@ const LURE_SVG = {
   jig:`<svg viewBox="0 0 40 40"><g fill="none" stroke="#c9d6c0" stroke-width="1.8"><circle cx="14" cy="16" r="5" fill="rgba(201,214,192,.12)"/><path d="M16 20 q4 10 -2 14 q-4 -2 -2 -6"/></g></svg>`
 };
 
-/* ---------- Z-MAN CATALOG (real lines, 2026 lineup seed) ---------- */
-const LURES = {
-  jackhammer:{n:"ChatterBait JackHammer",t:"chatter",col:"Green Pumpkin · Chartreuse/White"},
-  evo:{n:"ChatterBait EVO",t:"chatter",new:true,col:"Bluegill · Sexy Shad"},
-  minimax:{n:"ChatterBait MiniMax",t:"chatter",col:"Bluegill · Clear Ghost"},
-  finessetrd:{n:"Finesse TRD",t:"soft",col:"Green Pumpkin · Coppertreuse"},
-  trdcrawz:{n:"TRD CrawZ",t:"craw",col:"Molting Craw · California Craw"},
-  shroomz:{n:"Finesse ShroomZ Jighead",t:"jig",col:"1/6 oz · #1 hook"},
-  diezel:{n:"DieZel MinnowZ",t:"swim",col:"Pearl · Redfish Toad"},
-  slimswimz:{n:"Slim SwimZ",t:"swim",col:"Smelt · The Deal"},
-  jerkshadz:{n:"Scented Jerk ShadZ",t:"soft",col:"Pearl · New Penny"},
-  streakz:{n:"StreakZ 3.75",t:"soft",col:"Pearl · Houdini"},
-  swaglt:{n:"SWAG LT Swimbait",t:"swim",new:true,col:"Ghost · Hot Craw"},
-  gobius:{n:"Gobius Swimbait",t:"swim",new:true,col:"Goby · Green Pumpkin"},
-  prawnstarz:{n:"PrawnstarZ",t:"shrimp",new:true,col:"Natural · Penny Shrimp"},
-  popfrogz:{n:"Pop FrogZ",t:"frog",col:"Bullfrog · Black"},
-  graphshadz:{n:"Graph ShadZ",t:"swim",new:true,col:"Pearl · Smelt (FFS)"},
-  texaseye:{n:"Texas Eye Finesse Jighead",t:"jig",col:"1/4 oz · weedless"}
-};
+/* ---------- DATA: loaded from data/*.json (this is the "database") ----------
+   Species, lures, and the new-products feed now live in version-controlled JSON
+   files in the repo instead of being hardcoded here. Edit those files (even in
+   GitHub's web editor) and the app updates — no touching this logic. */
+let LURES = {};
+let SPECIES = {fresh:[],inshore:[],nearshore:[]};
+let NEW_PRODUCTS = [];
+let DATA_READY = false;
 
-/* ---------- SPECIES (seed dataset; Southeast-strong) ---------- */
-const SPECIES = {
-  fresh:[
-    {id:"lmb",nm:"Largemouth Bass",sci:"Micropterus salmoides",svg:"bass",tmin:50,tmax:85,topt:[62,78],
-      how:"Ambush predator on cover — grass lines, docks, laydowns. Work edges; slow in cold, fast & reactive when warm.",
-      warm:["jackhammer","popfrogz","swaglt"],cold:["finessetrd","trdcrawz"],lowlight:["popfrogz","jackhammer"],clear:["jerkshadz","finessetrd"]},
-    {id:"smb",nm:"Smallmouth Bass",sci:"Micropterus dolomieu",svg:"bass",tmin:45,tmax:78,topt:[58,72],
-      how:"Loves rock, current seams, and clean bottom. Goby and crawfish forage — keep baits near the floor.",
-      warm:["gobius","jackhammer"],cold:["finessetrd","trdcrawz","gobius"],clear:["finessetrd","streakz"],lowlight:["jackhammer"]},
-    {id:"crp",nm:"Crappie",sci:"Pomoxis sp.",svg:"panfish",tmin:48,tmax:80,topt:[58,72],
-      how:"Suspends around brush, bridge pilings, and standing timber. Tiny profiles, vertical or slow swim.",
-      warm:["slimswimz","minimax"],cold:["slimswimz"],clear:["slimswimz"],lowlight:["minimax"],ffs:["graphshadz"]},
-    {id:"bg",nm:"Bluegill / Panfish",sci:"Lepomis macrochirus",svg:"panfish",tmin:55,tmax:88,topt:[68,82],
-      how:"Bedding bays and shaded banks in warm months. Downsize everything; subtle presentations win.",
-      warm:["minimax","slimswimz"],cold:["slimswimz"],clear:["slimswimz"]},
-    {id:"cat",nm:"Channel Catfish",sci:"Ictalurus punctatus",svg:"catfish",tmin:50,tmax:90,topt:[70,85],
-      how:"Bottom feeders cueing on scent — deep holes, current breaks, after dark. Fish slow on the floor.",
-      warm:["trdcrawz","diezel"],cold:["trdcrawz"],lowlight:["diezel"]},
-    {id:"str",nm:"Striped Bass",sci:"Morone saxatilis",svg:"bass",tmin:48,tmax:75,topt:[55,68],
-      how:"Roams open water chasing bait schools; explodes on surface at dawn. Match the baitfish size.",
-      warm:["swaglt","diezel"],cold:["swaglt","streakz"],lowlight:["swaglt","jackhammer"],ffs:["graphshadz"]},
-    {id:"wal",nm:"Walleye",sci:"Sander vitreus",svg:"trout",tmin:40,tmax:72,topt:[50,66],
-      how:"Low-light bottom hugger over sand/gravel. Slow drag and swim presentations near structure.",
-      warm:["slimswimz","diezel"],cold:["finessetrd","slimswimz"],lowlight:["diezel","slimswimz"]},
-    {id:"pick",nm:"Chain Pickerel",sci:"Esox niger",svg:"toothy",tmin:45,tmax:80,topt:[52,70],
-      how:"Aggressive ambusher in vegetation — cool months especially. Fast, flashy retrieves draw strikes.",
-      warm:["jackhammer","diezel"],cold:["jackhammer","streakz"],lowlight:["jackhammer"]}
-  ],
-  inshore:[
-    {id:"red",nm:"Redfish",sci:"Sciaenops ocellatus",svg:"redfish",tmin:52,tmax:90,topt:[68,82],
-      how:"Tails on flats, holds on oyster bars and dock shade. Cover water, then slow down on a found fish.",
-      warm:["diezel","prawnstarz","jackhammer"],cold:["prawnstarz","jerkshadz"],clear:["jerkshadz","prawnstarz"],lowlight:["jackhammer","diezel"]},
-    {id:"spk",nm:"Speckled Trout",sci:"Cynoscion nebulosus",svg:"trout",tmin:55,tmax:85,topt:[65,78],
-      how:"Grass flats and potholes; suspends over deeper edges when cold. Soft jerks and paddles on light jigs.",
-      warm:["diezel","jerkshadz"],cold:["jerkshadz","streakz"],clear:["jerkshadz","streakz"],lowlight:["diezel"]},
-    {id:"flo",nm:"Flounder",sci:"Paralichthys sp.",svg:"flounder",tmin:55,tmax:82,topt:[64,76],
-      how:"Buried ambusher on sandy edges, inlets, and creek mouths. Drag baits slowly along the bottom.",
-      warm:["diezel","prawnstarz"],cold:["prawnstarz"],clear:["jerkshadz"]},
-    {id:"snk",nm:"Snook",sci:"Centropomus undecimalis",svg:"redfish",tmin:62,tmax:90,topt:[72,84],
-      how:"Cover-oriented around mangroves, docks, and lights at night. Reaction baits and natural soft plastics.",
-      warm:["diezel","jackhammer","jerkshadz"],lowlight:["diezel","jerkshadz"],clear:["jerkshadz"]},
-    {id:"drm",nm:"Black Drum",sci:"Pogonias cromis",svg:"redfish",tmin:50,tmax:82,topt:[60,75],
-      how:"Roots along bars and pilings for crustaceans. Slow, scent-forward bottom presentations.",
-      warm:["prawnstarz","trdcrawz"],cold:["prawnstarz"],clear:["prawnstarz"]},
-    {id:"shp",nm:"Sheepshead",sci:"Archosargus probatocephalus",svg:"panfish",tmin:50,tmax:78,topt:[58,72],
-      how:"Structure nibbler on pilings, jetties, and reefs. Compact crustacean profiles fished tight to cover.",
-      warm:["prawnstarz"],cold:["prawnstarz"],clear:["prawnstarz"]}
-  ],
-  nearshore:[
-    {id:"spm",nm:"Spanish Mackerel",sci:"Scomberomorus maculatus",svg:"toothy",tmin:65,tmax:86,topt:[72,82],
-      how:"Fast schoolers smashing glass minnows near the surface. Speed and flash trigger reaction strikes.",
-      warm:["streakz","slimswimz","diezel"],clear:["streakz"],lowlight:["diezel"]},
-    {id:"blu",nm:"Bluefish",sci:"Pomatomus saltatrix",svg:"toothy",tmin:55,tmax:80,topt:[60,74],
-      how:"Aggressive blitzes on bait balls. Burn a durable swimbait through the chaos.",
-      warm:["diezel","streakz"],cold:["streakz"],lowlight:["diezel"]},
-    {id:"cob",nm:"Cobia",sci:"Rachycentron canadum",svg:"redfish",tmin:68,tmax:86,topt:[72,82],
-      how:"Sight-fished on the surface near buoys, rays, and structure. Pitch a big profile ahead of the fish.",
-      warm:["swaglt","diezel"],clear:["jerkshadz"]}
-  ]
-};
+async function loadData(){
+  const base = "data/";
+  const [lr,sr,nr] = await Promise.all([
+    fetch(base+"lures.json"), fetch(base+"species.json"), fetch(base+"new-products.json")
+  ]);
+  if(!lr.ok || !sr.ok || !nr.ok) throw new Error("Could not load data files");
+  const lj=await lr.json(), sj=await sr.json(), nj=await nr.json();
 
-/* ---------- NEW PRODUCTS feed (seed = real 2026 arrivals) ---------- */
-const NEW_PRODUCTS = [
-  {nm:"ChatterBait EVO",cat:"Wire Bait",d:"Next-level bladed jig with a radical, unpredictable hunting action built for tournament performance."},
-  {nm:"SWAG LT Swimbait",cat:"ElaZtech Swim",d:"Wide, stable swim on an Over/Under line-through harness; 10X Tough body slides up the line on hookset."},
-  {nm:"PrawnstarZ",cat:"Shrimp / Crab",d:"Ultra-realistic shrimp action and 10X Tough durability to fool wary inshore predators."},
-  {nm:"Gobius Swimbait",cat:"ElaZtech Swim",d:"Goby-profile bait made to last and made to catch — a smallmouth & bottom-feeder favorite."},
-  {nm:"Graph ShadZ",cat:"Forward-Facing Sonar",d:"Purpose-built minnow profile for FFS — track and trigger suspended fish you see on the graph."}
-];
+  LURES={};
+  lj.lures.forEach(l=>{ LURES[l.id]={n:l.name,t:l.type,col:l.colors,new:l.isNew}; });
+
+  SPECIES={fresh:[],inshore:[],nearshore:[]};
+  sj.species.forEach(s=>{
+    const L=s.lures||{};
+    const rec={id:s.id,nm:s.name,sci:s.scientificName,svg:s.icon,
+      tmin:s.tempMin,tmax:s.tempMax,topt:s.tempOptimal,how:s.howTo,range:s.range,
+      warm:L.warm||[],cold:L.cold||[],lowlight:L.lowLight||[],clear:L.clear||[],ffs:L.ffs||[]};
+    (SPECIES[s.water]||(SPECIES[s.water]=[])).push(rec);
+  });
+
+  NEW_PRODUCTS=(nj.newProducts||[]).slice()
+    .sort((a,b)=>(b.date||"").localeCompare(a.date||""))
+    .map(p=>({nm:p.name,cat:p.category,d:p.description}));
+
+  DATA_READY=true;
+}
 
 /* ============================================================ */
 let waterType="fresh";
@@ -478,6 +424,7 @@ $("scanBtn").addEventListener("click",runScan);
 $("loc").addEventListener("keydown",e=>{if(e.key==="Enter")runScan();});
 
 async function runScan(){
+  if(!DATA_READY){ $("scanMsg") && null; alert("Still loading fish data — one sec…"); return; }
   const q=$("loc").value.trim();
   if(!q){$("loc").focus();return;}
   $("inputCard").classList.add("hidden");
@@ -585,6 +532,20 @@ try{
 let deferred;
 window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferred=e;$("installBtn").style.display="block";});
 $("installBtn").addEventListener("click",async()=>{if(deferred){deferred.prompt();await deferred.userChoice;deferred=null;$("installBtn").style.display="none";}});
+
+/* ---------- boot: load the database, then enable scanning ---------- */
+(function init(){
+  const btn=$("scanBtn");
+  btn.disabled=true; btn.textContent="▸ Loading data…";
+  loadData().then(()=>{
+    btn.disabled=false; btn.textContent="▸ Scan Waters";
+  }).catch(err=>{
+    btn.textContent="▸ Data failed to load";
+    $("results").innerHTML=`<div class="card"><div class="err">⚠ ${err.message}.<br>
+      The data files load over the web. Open Z-Fish from its GitHub Pages URL
+      (or any local web server) rather than as a file on disk.</div></div>`;
+  });
+})();
 </script>
 </body>
 </html>
