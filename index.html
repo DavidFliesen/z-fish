@@ -199,7 +199,13 @@ details[open] summary::before{content:"–"}
 .np{display:flex;gap:12px;overflow-x:auto;padding:6px 4px 10px;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch}
 .np::-webkit-scrollbar{height:0}
 .npcard{flex:0 0 200px;scroll-snap-align:start;border:1px solid var(--line);border-radius:15px;padding:13px;
-  background:linear-gradient(180deg,var(--deep),var(--panel))}
+  background:linear-gradient(180deg,var(--deep),var(--panel));text-decoration:none;color:inherit;display:block}
+.npcard:active{border-color:var(--sonar)}
+.npthumb{height:64px;border-radius:10px;background:#031b22;border:1px solid var(--line);margin-bottom:10px;
+  display:flex;align-items:center;justify-content:center;overflow:hidden}
+.npthumb img{width:100%;height:100%;object-fit:cover}
+.npthumb svg{width:54px;height:54px}
+.nplink{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1px;color:var(--sonar);margin-top:9px;text-transform:uppercase}
 .npcard .b{font-family:'Space Mono',monospace;font-size:8px;letter-spacing:1px;color:var(--red);text-transform:uppercase}
 .npcard .nm{font-family:'Anton',sans-serif;font-size:18px;margin-top:6px;line-height:1}
 .npcard .d{font-size:12px;color:#a9cfc8;line-height:1.45;margin-top:6px}
@@ -268,11 +274,11 @@ details[open] summary::before{content:"–"}
   <div id="results"></div>
 
   <div class="note" id="footNote">
-    <b>Prototype v005.</b> Search ramps, lakes, and addresses (OpenStreetMap / Photon),
-    drop a pin for spots the map doesn't name, or use GPS — search is biased toward
-    your area. Species come from real iNaturalist records near those coordinates, with
-    live Open-Meteo weather. Lure matching runs on an on-device rules engine. All free,
-    no keys. Next: vector-based lure matching, then optional AI-written tips.
+    <b>Prototype v006.</b> Search ramps, lakes, and addresses, drop a pin, or use GPS.
+    Species come from real iNaturalist records near those coordinates — worldwide:
+    fish outside the curated set are matched to a Z-Man lure type by feeding style.
+    Live Open-Meteo weather; on-device rules engine. New-product cards link to Z-Man.
+    All free, no keys. Next: vector-based lure matching, then optional AI tips.
   </div>
 </div>
 
@@ -334,7 +340,7 @@ async function loadData(){
 
   NEW_PRODUCTS=(nj.newProducts||[]).slice()
     .sort((a,b)=>(b.date||"").localeCompare(a.date||""))
-    .map(p=>({nm:p.name,cat:p.category,d:p.description}));
+    .map(p=>({nm:p.name,cat:p.category,d:p.description,t:p.type||"",url:p.url||"",img:p.image||""}));
 
   DATA_READY=true;
 }
@@ -501,6 +507,66 @@ $("mapToggle").addEventListener("click",()=>{
 // flatten curated species into one searchable list (keeps water tag)
 function allCurated(){ return [...SPECIES.fresh,...SPECIES.inshore,...SPECIES.nearshore]; }
 
+/* ---------- GLOBAL ARCHETYPES: make fish knowledge work worldwide ----------
+   Species don't generalize across continents, but lure *types* do. We sort any
+   observed fish into an angling archetype by genus, then suggest Z-Man lures of
+   the matching types. Extend GENUS_MAP to cover more of the world over time. */
+const ARCHETYPES={
+  ambush:   {label:"Ambush predator",        types:["chatter","swim","soft"], svg:"bass",    topt:[60,80], tmin:42, tmax:90,
+             how:"Ambush predator — target weed edges, timber, docks, and structure. Reaction baits and natural soft plastics trigger strikes."},
+  pelagic:  {label:"Open-water schooler",     types:["swim","soft"],           svg:"toothy",  topt:[62,80], tmin:50, tmax:88,
+             how:"Open-water schooler chasing baitfish near the surface. Match the bait size and retrieve with speed and flash."},
+  coolwater:{label:"Cool-water predator",     types:["soft","swim","jig"],     svg:"trout",   topt:[48,66], tmin:38, tmax:74,
+             how:"Cool-water fish holding near current seams and structure. Slow, natural presentations close to the bottom."},
+  bottom:   {label:"Bottom / crustacean feeder",types:["shrimp","craw","jig"], svg:"redfish", topt:[58,78], tmin:48, tmax:84,
+             how:"Bottom-oriented feeder on crustaceans and shellfish. Fish slow and scent-forward, tight to structure."},
+  reef:     {label:"Reef / structure predator",types:["swim","soft","jig"],    svg:"redfish", topt:[66,84], tmin:58, tmax:88,
+             how:"Structure-holding reef predator. Work baits near bottom cover, ledges, and drop-offs."},
+  catfish:  {label:"Catfish",                 types:["craw","swim"],           svg:"catfish", topt:[68,85], tmin:50, tmax:92,
+             how:"Scent-driven bottom feeder — deep holes and current breaks, best at low light. Fish slow on the floor."},
+  panfish:  {label:"Panfish",                 types:["soft","swim"],           svg:"panfish", topt:[64,82], tmin:52, tmax:88,
+             how:"Smaller, shallow-oriented fish. Downsize everything; subtle finesse presentations win."}
+};
+// genus (lowercase) -> archetype. Covers major sport fish across the Americas, Europe, Africa, Asia, Australia.
+const GENUS_MAP={
+  micropterus:"ambush", esox:"ambush", channa:"ambush", lates:"ambush", cichla:"ambush",
+  centropomus:"ambush", sciaenops:"ambush", cynoscion:"ambush", argyrosomus:"ambush",
+  paralichthys:"ambush", platichthys:"ambush", maccullochella:"ambush", macquaria:"ambush",
+  dicentrarchus:"pelagic", morone:"pelagic", scomberomorus:"pelagic", scomber:"pelagic",
+  caranx:"pelagic", seriola:"pelagic", pomatomus:"pelagic", rachycentron:"pelagic",
+  perca:"coolwater", sander:"coolwater", stizostedion:"coolwater", thymallus:"coolwater",
+  salmo:"coolwater", oncorhynchus:"coolwater", salvelinus:"coolwater", esoxlucius:"ambush",
+  pogonias:"bottom", archosargus:"bottom", sparus:"bottom", pagrus:"bottom", acanthopagrus:"bottom",
+  lutjanus:"reef", epinephelus:"reef", mycteroperca:"reef",
+  ictalurus:"catfish", ameiurus:"catfish", pylodictis:"catfish", silurus:"catfish", clarias:"catfish", pangasius:"catfish",
+  lepomis:"panfish", pomoxis:"panfish"
+};
+
+// pick Z-Man lure ids whose type is in the archetype's list (staples first)
+function luresOfTypes(types,n){
+  const out=[];
+  types.forEach(t=>Object.keys(LURES).forEach(id=>{ if(LURES[id].t===t && !out.includes(id)) out.push(id); }));
+  out.sort((a,b)=>(LURES[a].new?1:0)-(LURES[b].new?1:0)); // prefer non-new staples
+  return out.slice(0,n||4);
+}
+
+// turn unmatched observed fish into actionable cards via their archetype (one per genus)
+function generalize(extras){
+  const gens=[], leftover=[], usedGenus=new Set();
+  extras.forEach(o=>{
+    const key=GENUS_MAP[(o.genus||"").toLowerCase()];
+    if(key && ARCHETYPES[key] && !usedGenus.has(o.genus.toLowerCase())){
+      usedGenus.add(o.genus.toLowerCase());
+      const A=ARCHETYPES[key], ids=luresOfTypes(A.types,4);
+      gens.push({ id:"gen_"+o.sci.replace(/\s+/g,"_"), nm:o.common||o.sci, sci:o.sci, svg:A.svg,
+        tmin:A.tmin, tmax:A.tmax, topt:A.topt, how:A.how,
+        warm:ids, cold:ids, lowlight:ids, clear:ids, ffs:[],
+        obsCount:o.count, photo:o.photo, generalized:true, archetype:A.label });
+    } else leftover.push(o);
+  });
+  return {gens, leftover:leftover.slice(0,6)};
+}
+
 async function inatSpecies(lat,lon,radiusKm){
   const u=`https://api.inaturalist.org/v1/observations/species_counts`+
     `?lat=${lat}&lng=${lon}&radius=${radiusKm}&iconic_taxa=Actinopterygii`+
@@ -555,10 +621,11 @@ function matchSpecies(observed){
 async function resolveSpecies(lat,lon){
   try{
     let obs=await inatSpecies(lat,lon,18);
-    let m=matchSpecies(obs);
-    if(m.present.length<3){ const wide=await inatSpecies(lat,lon,55); const mw=matchSpecies(wide);
-      if(mw.present.length>m.present.length){ obs=wide; m=mw; } }
-    if(m.present.length>0) return {mode:"observed", ...m};
+    if(obs.length<6){ const wide=await inatSpecies(lat,lon,55); if(wide.length>obs.length) obs=wide; }
+    const m=matchSpecies(obs);
+    const g=generalize(m.extras);
+    const present=m.present.concat(g.gens);
+    if(present.length>0) return {mode:"observed", present, extras:g.leftover};
   }catch(e){ /* fall through to seasonal */ }
   return {mode:"seasonal", present:SPECIES[waterType].map(sp=>({...sp,obsCount:null,photo:""})), extras:[]};
 }
@@ -729,19 +796,21 @@ function render(geo,wx,asked,sp){
 
   /* species */
   html+=`<div class="sec"><h2>What's Biting</h2><div class="ln"></div><small>${list.length} species</small></div>`;
-  list.forEach(({sp,a,lures})=>{
+  list.slice(0,12).forEach(({sp,a,lures})=>{
     const pic = sp.photo
       ? `<img src="${sp.photo}" alt="${sp.nm}" loading="lazy" onerror="this.style.display='none';this.parentNode.innerHTML=FISH_SVG['${sp.svg}']" />`
       : FISH_SVG[sp.svg];
+    const tag = sp.generalized
+      ? `<div class="count">▣ ${sp.archetype} · regional match${sp.obsCount?` · ${sp.obsCount} records`:''}</div>`
+      : (sp.obsCount?`<div class="count">⚲ ${sp.obsCount} local records</div>`:'');
     html+=`<div class="fish">
       <div class="fishhead">
         <div class="silo">${pic}</div>
-        <div class="fishmeta"><div class="nm">${sp.nm}</div><div class="sci">${sp.sci}</div>
-          ${sp.obsCount?`<div class="count">⚲ ${sp.obsCount} local records</div>`:''}</div>
+        <div class="fishmeta"><div class="nm">${sp.nm}</div><div class="sci">${sp.sci}</div>${tag}</div>
         <div class="act"><div class="dot ${a.tier}"></div><div class="t">${a.tier}</div></div>
       </div>
       <div class="howto">${sp.how}</div>
-      <div class="lures"><div class="luretitle">▸ Z-Man Picks</div>`;
+      <div class="lures"><div class="luretitle">▸ Z-Man Picks${sp.generalized?' · by feeding style':''}</div>`;
     lures.forEach(L=>{
       html+=`<div class="lure">
         <div class="lureic">${LURE_SVG[L.t]}</div>
@@ -768,8 +837,15 @@ function render(geo,wx,asked,sp){
   html+=`<div class="sec"><h2>New From Z-Man</h2><div class="ln"></div><small>2026</small></div>
     <div class="np">`;
   NEW_PRODUCTS.forEach(p=>{
-    html+=`<div class="npcard"><div class="b">● Just Landed</div><div class="nm">${p.nm}</div>
-      <div class="d">${p.d}</div><div class="c">${p.cat}</div></div>`;
+    const thumb = p.img
+      ? `<img src="${p.img}" alt="${p.nm}" loading="lazy" onerror="this.style.display='none'">`
+      : (p.t && LURE_SVG[p.t] ? LURE_SVG[p.t] : '');
+    const open = p.url ? `href="${p.url}" target="_blank" rel="noopener"` : '';
+    const tag = `<div class="npthumb">${thumb}</div>
+      <div class="b">● Just Landed</div><div class="nm">${p.nm}</div>
+      <div class="d">${p.d}</div><div class="c">${p.cat}</div>
+      ${p.url?`<div class="nplink">View on Z-Man ↗</div>`:''}`;
+    html+= p.url ? `<a class="npcard" ${open}>${tag}</a>` : `<div class="npcard">${tag}</div>`;
   });
   html+=`</div>`;
 
