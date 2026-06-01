@@ -1,0 +1,21 @@
+{
+  "_comment": "Z-Fish lure catalog. Each lure has a stable id referenced by species. Edit here once; every species that uses it updates automatically. 'type' drives which icon renders. 'isNew' shows the NEW badge and feeds the New Products feed.",
+  "lures": [
+    { "id": "jackhammer",  "name": "ChatterBait JackHammer",        "type": "chatter", "colors": "Green Pumpkin · Chartreuse/White", "isNew": false },
+    { "id": "evo",         "name": "ChatterBait EVO",               "type": "chatter", "colors": "Bluegill · Sexy Shad",           "isNew": true  },
+    { "id": "minimax",     "name": "ChatterBait MiniMax",           "type": "chatter", "colors": "Bluegill · Clear Ghost",         "isNew": false },
+    { "id": "finessetrd",  "name": "Finesse TRD",                   "type": "soft",    "colors": "Green Pumpkin · Coppertreuse",  "isNew": false },
+    { "id": "trdcrawz",    "name": "TRD CrawZ",                     "type": "craw",    "colors": "Molting Craw · California Craw", "isNew": false },
+    { "id": "shroomz",     "name": "Finesse ShroomZ Jighead",       "type": "jig",     "colors": "1/6 oz · #1 hook",              "isNew": false },
+    { "id": "diezel",      "name": "DieZel MinnowZ",                "type": "swim",    "colors": "Pearl · Redfish Toad",          "isNew": false },
+    { "id": "slimswimz",   "name": "Slim SwimZ",                    "type": "swim",    "colors": "Smelt · The Deal",              "isNew": false },
+    { "id": "jerkshadz",   "name": "Scented Jerk ShadZ",            "type": "soft",    "colors": "Pearl · New Penny",             "isNew": false },
+    { "id": "streakz",     "name": "StreakZ 3.75",                  "type": "soft",    "colors": "Pearl · Houdini",               "isNew": false },
+    { "id": "swaglt",      "name": "SWAG LT Swimbait",              "type": "swim",    "colors": "Ghost · Hot Craw",              "isNew": true  },
+    { "id": "gobius",      "name": "Gobius Swimbait",               "type": "swim",    "colors": "Goby · Green Pumpkin",          "isNew": true  },
+    { "id": "prawnstarz",  "name": "PrawnstarZ",                    "type": "shrimp",  "colors": "Natural · Penny Shrimp",        "isNew": true  },
+    { "id": "popfrogz",    "name": "Pop FrogZ",                     "type": "frog",    "colors": "Bullfrog · Black",              "isNew": false },
+    { "id": "graphshadz",  "name": "Graph ShadZ",                   "type": "swim",    "colors": "Pearl · Smelt (FFS)",           "isNew": true  },
+    { "id": "texaseye",    "name": "Texas Eye Finesse Jighead",     "type": "jig",     "colors": "1/4 oz · weedless",             "isNew": false }
+  ]
+}

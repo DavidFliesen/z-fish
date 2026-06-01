@@ -1,1 +1,141 @@
-
+{
+  "_comment": "Z-Fish species table. Lures are referenced by id (see lures.json) under condition keys: warm, cold, lowLight, clear, ffs. 'water' buckets the species today. 'range' is a coarse, human-readable hint and is the hook for the NEXT phase, where real occurrence data (iNaturalist / GBIF) keyed to lat/lon replaces water-type bucketing and fixes the wrong-fish bug. 'icon' selects the SVG drawn in the app.",
+  "species": [
+    {
+      "id": "lmb", "name": "Largemouth Bass", "scientificName": "Micropterus salmoides",
+      "water": "fresh", "icon": "bass",
+      "tempMin": 50, "tempMax": 85, "tempOptimal": [62, 78],
+      "range": "Widespread across North America; lakes, ponds, slow rivers.",
+      "howTo": "Ambush predator on cover — grass lines, docks, laydowns. Work edges; slow in cold, fast & reactive when warm.",
+      "lures": { "warm": ["jackhammer", "popfrogz", "swaglt"], "cold": ["finessetrd", "trdcrawz"], "lowLight": ["popfrogz", "jackhammer"], "clear": ["jerkshadz", "finessetrd"] }
+    },
+    {
+      "id": "smb", "name": "Smallmouth Bass", "scientificName": "Micropterus dolomieu",
+      "water": "fresh", "icon": "bass",
+      "tempMin": 45, "tempMax": 78, "tempOptimal": [58, 72],
+      "range": "Cooler, clearer lakes and rivers; northern U.S. and upland reservoirs.",
+      "howTo": "Loves rock, current seams, and clean bottom. Goby and crawfish forage — keep baits near the floor.",
+      "lures": { "warm": ["gobius", "jackhammer"], "cold": ["finessetrd", "trdcrawz", "gobius"], "lowLight": ["jackhammer"], "clear": ["finessetrd", "streakz"] }
+    },
+    {
+      "id": "crp", "name": "Crappie", "scientificName": "Pomoxis sp.",
+      "water": "fresh", "icon": "panfish",
+      "tempMin": 48, "tempMax": 80, "tempOptimal": [58, 72],
+      "range": "Reservoirs and lakes nationwide; brush and standing timber.",
+      "howTo": "Suspends around brush, bridge pilings, and standing timber. Tiny profiles, vertical or slow swim.",
+      "lures": { "warm": ["slimswimz", "minimax"], "cold": ["slimswimz"], "lowLight": ["minimax"], "clear": ["slimswimz"], "ffs": ["graphshadz"] }
+    },
+    {
+      "id": "bg", "name": "Bluegill / Panfish", "scientificName": "Lepomis macrochirus",
+      "water": "fresh", "icon": "panfish",
+      "tempMin": 55, "tempMax": 88, "tempOptimal": [68, 82],
+      "range": "Ponds and lakes across North America; shallow, weedy bays.",
+      "howTo": "Bedding bays and shaded banks in warm months. Downsize everything; subtle presentations win.",
+      "lures": { "warm": ["minimax", "slimswimz"], "cold": ["slimswimz"], "clear": ["slimswimz"] }
+    },
+    {
+      "id": "cat", "name": "Channel Catfish", "scientificName": "Ictalurus punctatus",
+      "water": "fresh", "icon": "catfish",
+      "tempMin": 50, "tempMax": 90, "tempOptimal": [70, 85],
+      "range": "Rivers, lakes, and reservoirs throughout the U.S.",
+      "howTo": "Bottom feeders cueing on scent — deep holes, current breaks, after dark. Fish slow on the floor.",
+      "lures": { "warm": ["trdcrawz", "diezel"], "cold": ["trdcrawz"], "lowLight": ["diezel"] }
+    },
+    {
+      "id": "str", "name": "Striped Bass", "scientificName": "Morone saxatilis",
+      "water": "fresh", "icon": "bass",
+      "tempMin": 48, "tempMax": 75, "tempOptimal": [55, 68],
+      "range": "Large reservoirs and coastal rivers; landlocked and migratory stocks.",
+      "howTo": "Roams open water chasing bait schools; explodes on surface at dawn. Match the baitfish size.",
+      "lures": { "warm": ["swaglt", "diezel"], "cold": ["swaglt", "streakz"], "lowLight": ["swaglt", "jackhammer"], "ffs": ["graphshadz"] }
+    },
+    {
+      "id": "wal", "name": "Walleye", "scientificName": "Sander vitreus",
+      "water": "fresh", "icon": "trout",
+      "tempMin": 40, "tempMax": 72, "tempOptimal": [50, 66],
+      "range": "Northern lakes and large rivers; cool, low-light waters.",
+      "howTo": "Low-light bottom hugger over sand/gravel. Slow drag and swim presentations near structure.",
+      "lures": { "warm": ["slimswimz", "diezel"], "cold": ["finessetrd", "slimswimz"], "lowLight": ["diezel", "slimswimz"] }
+    },
+    {
+      "id": "pick", "name": "Chain Pickerel", "scientificName": "Esox niger",
+      "water": "fresh", "icon": "toothy",
+      "tempMin": 45, "tempMax": 80, "tempOptimal": [52, 70],
+      "range": "Eastern U.S. lakes and slow rivers; thick vegetation.",
+      "howTo": "Aggressive ambusher in vegetation — cool months especially. Fast, flashy retrieves draw strikes.",
+      "lures": { "warm": ["jackhammer", "diezel"], "cold": ["jackhammer", "streakz"], "lowLight": ["jackhammer"] }
+    },
+    {
+      "id": "red", "name": "Redfish", "scientificName": "Sciaenops ocellatus",
+      "water": "inshore", "icon": "redfish",
+      "tempMin": 52, "tempMax": 90, "tempOptimal": [68, 82],
+      "range": "Atlantic and Gulf coasts; flats, marshes, oyster bars.",
+      "howTo": "Tails on flats, holds on oyster bars and dock shade. Cover water, then slow down on a found fish.",
+      "lures": { "warm": ["diezel", "prawnstarz", "jackhammer"], "cold": ["prawnstarz", "jerkshadz"], "lowLight": ["jackhammer", "diezel"], "clear": ["jerkshadz", "prawnstarz"] }
+    },
+    {
+      "id": "spk", "name": "Speckled Trout", "scientificName": "Cynoscion nebulosus",
+      "water": "inshore", "icon": "trout",
+      "tempMin": 55, "tempMax": 85, "tempOptimal": [65, 78],
+      "range": "Atlantic and Gulf coasts; grass flats and estuaries.",
+      "howTo": "Grass flats and potholes; suspends over deeper edges when cold. Soft jerks and paddles on light jigs.",
+      "lures": { "warm": ["diezel", "jerkshadz"], "cold": ["jerkshadz", "streakz"], "lowLight": ["diezel"], "clear": ["jerkshadz", "streakz"] }
+    },
+    {
+      "id": "flo", "name": "Flounder", "scientificName": "Paralichthys sp.",
+      "water": "inshore", "icon": "flounder",
+      "tempMin": 55, "tempMax": 82, "tempOptimal": [64, 76],
+      "range": "Atlantic and Gulf coasts; sandy inlets and creek mouths.",
+      "howTo": "Buried ambusher on sandy edges, inlets, and creek mouths. Drag baits slowly along the bottom.",
+      "lures": { "warm": ["diezel", "prawnstarz"], "cold": ["prawnstarz"], "clear": ["jerkshadz"] }
+    },
+    {
+      "id": "snk", "name": "Snook", "scientificName": "Centropomus undecimalis",
+      "water": "inshore", "icon": "redfish",
+      "tempMin": 62, "tempMax": 90, "tempOptimal": [72, 84],
+      "range": "Florida and warm Gulf waters; mangroves, docks, passes.",
+      "howTo": "Cover-oriented around mangroves, docks, and lights at night. Reaction baits and natural soft plastics.",
+      "lures": { "warm": ["diezel", "jackhammer", "jerkshadz"], "lowLight": ["diezel", "jerkshadz"], "clear": ["jerkshadz"] }
+    },
+    {
+      "id": "drm", "name": "Black Drum", "scientificName": "Pogonias cromis",
+      "water": "inshore", "icon": "redfish",
+      "tempMin": 50, "tempMax": 82, "tempOptimal": [60, 75],
+      "range": "Atlantic and Gulf coasts; bars, pilings, and channels.",
+      "howTo": "Roots along bars and pilings for crustaceans. Slow, scent-forward bottom presentations.",
+      "lures": { "warm": ["prawnstarz", "trdcrawz"], "cold": ["prawnstarz"], "clear": ["prawnstarz"] }
+    },
+    {
+      "id": "shp", "name": "Sheepshead", "scientificName": "Archosargus probatocephalus",
+      "water": "inshore", "icon": "panfish",
+      "tempMin": 50, "tempMax": 78, "tempOptimal": [58, 72],
+      "range": "Atlantic and Gulf coasts; pilings, jetties, reefs.",
+      "howTo": "Structure nibbler on pilings, jetties, and reefs. Compact crustacean profiles fished tight to cover.",
+      "lures": { "warm": ["prawnstarz"], "cold": ["prawnstarz"], "clear": ["prawnstarz"] }
+    },
+    {
+      "id": "spm", "name": "Spanish Mackerel", "scientificName": "Scomberomorus maculatus",
+      "water": "nearshore", "icon": "toothy",
+      "tempMin": 65, "tempMax": 86, "tempOptimal": [72, 82],
+      "range": "Atlantic and Gulf coasts; nearshore schools, warm months.",
+      "howTo": "Fast schoolers smashing glass minnows near the surface. Speed and flash trigger reaction strikes.",
+      "lures": { "warm": ["streakz", "slimswimz", "diezel"], "lowLight": ["diezel"], "clear": ["streakz"] }
+    },
+    {
+      "id": "blu", "name": "Bluefish", "scientificName": "Pomatomus saltatrix",
+      "water": "nearshore", "icon": "toothy",
+      "tempMin": 55, "tempMax": 80, "tempOptimal": [60, 74],
+      "range": "Atlantic coast; surf, inlets, and nearshore bait blitzes.",
+      "howTo": "Aggressive blitzes on bait balls. Burn a durable swimbait through the chaos.",
+      "lures": { "warm": ["diezel", "streakz"], "cold": ["streakz"], "lowLight": ["diezel"] }
+    },
+    {
+      "id": "cob", "name": "Cobia", "scientificName": "Rachycentron canadum",
+      "water": "nearshore", "icon": "redfish",
+      "tempMin": 68, "tempMax": 86, "tempOptimal": [72, 82],
+      "range": "Atlantic and Gulf coasts; buoys, wrecks, surface structure.",
+      "howTo": "Sight-fished on the surface near buoys, rays, and structure. Pitch a big profile ahead of the fish.",
+      "lures": { "warm": ["swaglt", "diezel"], "clear": ["jerkshadz"] }
+    }
+  ]
+}
