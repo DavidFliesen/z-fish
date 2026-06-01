@@ -2,11 +2,13 @@
 
 **Sonar Field Guide — Z-Man Lure Picks**
 
-Z-Fish is a mobile-first fishing companion. Tell it *where* you’re fishing (and optionally *when*), and it tells you what species are likely biting, how to catch them, and which **Z-Man** lures to throw given the live conditions on the water.
+Z-Fish is a mobile-first fishing companion. Tell it *where* you’re fishing (and optionally *when*), and it tells you what species are actually being caught there, how to catch them, and which **Z-Man** lures to throw given the live conditions on the water.
 
 ### 🔗 Live demo → **[davidfliesen.github.io/z-fish](https://davidfliesen.github.io/z-fish)**
 
-![Status](https://img.shields.io/badge/status-prototype%20v001-3ff0c4)
+### 🗺️ Architecture (v001) → **[davidfliesen.github.io/z-fish/architecture-001.html](https://davidfliesen.github.io/z-fish/architecture-001.html)**
+
+![Status](https://img.shields.io/badge/status-prototype%20v008-3ff0c4)
 ![Platform](https://img.shields.io/badge/platform-iOS%20%7C%20Android%20%7C%20Web-072730)
 
 <p align="center">
@@ -19,12 +21,13 @@ Z-Fish is a mobile-first fishing companion. Tell it *where* you’re fishing (an
 
 ## What it does
 
-- **Enter a location** — a lake, river, bay, town, or raw `lat, lon`. One tap can also grab your GPS position.
-- **Pick a water type** — Freshwater, Inshore Saltwater, or Nearshore.
-- **(Optional) add a date & time** — Z-Fish pulls live weather and recalculates everything.
-- **Get a scan report** — likely species ranked by how active they are, a short how-to-catch brief for each, and 2–3 matched **Z-Man** lure picks with suggested colors and a reason for the choice.
-- **Watch the bite window** — falling pressure ahead of a front is flagged as prime; bluebird post-front high pressure is flagged as a tough, finesse bite; low-light windows get their due.
-- **Stay current** — a *New From Z-Man* feed surfaces the latest products as they emerge.
+- **Find your exact spot** — search a lake, river, ramp, or address (OpenStreetMap), drop a pin on the map for places that aren’t named, paste raw `lat, lon`, or use GPS.
+- **See what’s really there** — species come from real iNaturalist observation records near your coordinates, with photos, ranked by how active they should be.
+- **Get the how-to + Z-Man picks** — each fish gets a short how-to-catch brief and matched **Z-Man** lures with suggested colors and a reason for the choice.
+- **Add a date & time** — Z-Fish pulls live weather and computes a bite window (falling pressure ahead of a front = prime; post-front bluebird high = tough; low-light windows get their due).
+- **Works worldwide** — fish outside the curated North American set are matched to a Z-Man lure *type* by feeding style, so a pike in Sweden or a barramundi in Australia still gets a recommendation.
+- **Knows when there’s no water** — a dry-land pin returns “no fishing waters found” instead of inventing fish.
+- **New From Z-Man** — a feed of the latest products with thumbnails that link to Z-Man’s site.
 
 It installs to the iOS/Android home screen as a PWA, so it behaves like a native app once added.
 
@@ -32,74 +35,71 @@ It installs to the iOS/Android home screen as a PWA, so it behaves like a native
 
 ## How it works
 
-### Current prototype (`zfish_v001.html`)
+Z-Fish is a **static site** — a single `index.html` plus JSON data, hosted free on GitHub Pages. There’s no server to run or maintain, and every service it calls is free and key-free.
 
-A single self-contained HTML file — no build step, no server, no API keys.
+|Layer              |Implementation                                                                         |
+|-------------------|---------------------------------------------------------------------------------------|
+|Location search    |OpenStreetMap / **Photon** — type-ahead for ramps, lakes, addresses, with regional bias|
+|Pin-drop & map     |**Leaflet** + free OpenStreetMap tiles                                                 |
+|Weather            |**Open-Meteo** forecast — temp, wind, cloud, precipitation, surface pressure (16-day)  |
+|Bite window        |Rules engine over time-of-day, cloud, wind, and pressure trend                         |
+|Species by location|**iNaturalist** observation records near the coordinates, with real photos             |
+|Global coverage    |Angling-archetype system keyed on genus → Z-Man lure *types*                           |
+|No-water detection |OpenStreetMap / **Overpass** check for nearby lake / river / reservoir                 |
+|Data (“database”)  |Version-controlled **JSON** files (`species`, `lures`, `new-products`)                 |
+|Lure matching      |On-device rules engine over the Z-Man catalog                                          |
+|Install            |Web App Manifest + Apple touch meta tags (PWA)                                         |
 
-|Layer                  |Implementation                                                                                |
-|-----------------------|----------------------------------------------------------------------------------------------|
-|Geocoding              |Open-Meteo Geocoding API *(free, no key)*                                                     |
-|Weather                |Open-Meteo Forecast API — temp, wind, cloud, precipitation, surface pressure *(16-day window)*|
-|Water-temp estimate    |Latitude + season + air-temp heuristic                                                        |
-|Bite window            |Rules engine over time-of-day, cloud cover, wind, and pressure trend                          |
-|Species & lure matching|On-device rules engine over a curated species dataset and the Z-Man catalog                   |
-|Fish & lure art        |Inline SVG (works fully offline, never breaks)                                                |
-|Install                |Web App Manifest + Apple touch meta tags (PWA)                                                |
-
-
-> The prototype runs entirely on-device so it’s instant and key-free. The AI layer below replaces the hardcoded matching in the production build.
-
-### Planned production architecture
-
-The full system moves the intelligence to a lightweight backend using **free models and services** — the parts that genuinely need persistence:
-
-1. **Vectorized Z-Man catalog** — the full product line embedded with `sentence-transformers/all-MiniLM-L6-v2` into a **FAISS** index, so conditions and species map to the best lures by *meaning* rather than fixed lists.
-1. **New-product monitor** — a scheduled job that polls `zmanfishing.com/collections/2026-new-products`, diffs against the index, and auto-embeds anything new so the catalog stays current on its own.
-1. **Natural-language reasoning** — **Llama-3.3-70B** (via Groq) writes the “why and how” for each recommendation instead of templates.
-1. **Real species-by-coordinates data** — sourced from the free **iNaturalist** / **GBIF** occurrence APIs, replacing the curated seed dataset.
-
-Backend stack: **FastAPI + ngrok** (Google Colab–friendly), **FAISS**, **sentence-transformers**, **Groq**.
+The data layer is documented in [`SCHEMA.md`](SCHEMA.md) and is structured to lift cleanly into SQLite/Postgres later.
 
 -----
 
-## Getting started
+## Repo layout
 
-**Run it now:**
+```
+z-fish/
+├── index.html              ← the app
+├── data/
+│   ├── species.json        ← curated species + lure mappings
+│   ├── lures.json          ← Z-Man catalog
+│   └── new-products.json   ← "New From Z-Man" feed
+├── architecture-001.html   ← system schematic
+├── SCHEMA.md               ← data model
+├── z-fish-preview.jpeg
+└── README.md
+```
 
-1. Download `zfish_v001.html`.
-1. Open it in any modern mobile or desktop browser.
-1. On a phone: use *Add to Home Screen* to install it as an app.
-
-**Host it (GitHub Pages):**
-
-1. Rename the latest version to `index.html` (or link to it directly).
-1. Push to a repo and enable Pages.
-
-No keys or accounts are required — the weather and geocoding services are free and open.
+The app loads its JSON over the web, so test on the live GitHub Pages URL (opening the file directly from disk won’t load the data).
 
 -----
 
 ## Roadmap
 
-- [x] Mobile-first prototype with live weather + bite window (`v001`)
-- [ ] FastAPI backend: FAISS-vectorized Z-Man catalog + semantic lure matching
-- [ ] Automated new-product monitor with auto-embedding
-- [ ] Llama-3.3-70B recommendation reasoning
-- [ ] Live species data via iNaturalist / GBIF
-- [ ] Real species photos
-- [ ] True native apps (Expo / React Native) for the App Store & Google Play
+- [x] Mobile-first prototype with live weather + bite window
+- [x] JSON data layer (the “database”) + schema
+- [x] Precise location: OSM search, map pin-drop, GPS
+- [x] Real species by coordinates via iNaturalist, with photos
+- [x] Global coverage via angling archetypes
+- [x] No-water detection (Overpass)
+- [x] *New From Z-Man* with thumbnails + links
+- [ ] Vector-based lure matching (catalog embeddings precomputed once, searched in-browser)
+- [ ] Optional AI-written tips (small serverless function to hold the key + an LLM)
+- [ ] Automated new-product monitor
+- [ ] Native apps (Expo / React Native) for the App Store & Google Play
 
 -----
 
 ## Free to run
 
-Z-Fish is built on services and models that are free to use:
+Everything Z-Fish uses today is free and requires no API key:
 
-- **Open-Meteo** — weather & geocoding (no API key)
-- **sentence-transformers (all-MiniLM-L6-v2)** — embeddings *(planned)*
-- **FAISS** — vector search *(planned)*
-- **Llama 3.3** — LLM reasoning *(planned)*
-- **iNaturalist / GBIF** — biodiversity data *(planned)*
+- **Open-Meteo** — weather & geocoding
+- **OpenStreetMap / Photon** — location search & pin-drop
+- **OpenStreetMap / Overpass** — water detection
+- **iNaturalist** — species records & photos
+- **Leaflet** + OpenStreetMap tiles — map
+
+*Planned:* sentence-transformers + FAISS embeddings (precomputed, searched in the browser) and an optional Llama 3.3 model via Groq for written tips.
 
 -----
 
@@ -113,7 +113,7 @@ Z-Fish recommends **Z-Man** products simply because they’re the lures the deve
 
 **David Fliesen** — *Hybrid Generative AI & Multimedia Developer* and founder of **Cibola Studios** (Summerville, SC).
 
-A U.S. Navy Combat Camera veteran with 20+ years across photography, video, voice-over, and character animation, David has worked on DoD simulation and virtual-agent projects and completed the **Purdue / Simplilearn Applied Generative AI Specialization**. He builds practical, AI-powered applications through an iterative, prototype-first workflow — Z-Fish being a recent example of pairing free AI tooling with real-world utility.
+A U.S. Navy Combat Camera veteran with 20+ years across photography, video, voice-over, and character animation, David has worked on DoD simulation and virtual-agent projects and completed the **Purdue / Simplilearn Applied Generative AI Specialization**. He builds practical, AI-powered applications through an iterative, prototype-first workflow — Z-Fish being a recent example of pairing free tooling with real-world utility.
 
 ### Connect
 
