@@ -12,6 +12,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <style>
 :root{
   --abyss:#04141a; --deep:#072730; --panel:#0b3540; --line:#16505e;
@@ -69,6 +71,14 @@ input::placeholder{color:#4d7a78}
 
 /* autocomplete */
 .lochint{font-family:'Space Mono',monospace;font-size:9.5px;letter-spacing:1px;color:var(--mute);margin-top:6px}
+.maptoggle{margin-top:9px;width:100%;background:#031b22;border:1px solid var(--line);color:var(--sonar);
+  border-radius:11px;padding:11px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Archivo',sans-serif}
+.maptoggle:active{background:#062a33}
+.maptoggle.on{border-color:var(--sonar);box-shadow:0 0 0 1px var(--sonar) inset}
+.mapwrap{margin-top:10px}
+#map{height:240px;border-radius:13px;border:1px solid var(--line);overflow:hidden;background:#031b22}
+.leaflet-container{background:#031b22}
+.maphelp{font-family:'Space Mono',monospace;font-size:9.5px;letter-spacing:1px;color:var(--mute);margin-top:7px;text-align:center}
 .ac{position:absolute;top:calc(100% + 6px);left:0;right:0;z-index:40;background:#04222b;border:1px solid var(--sonar-dim);
   border-radius:12px;overflow:hidden;box-shadow:0 18px 40px -16px #000;max-height:280px;overflow-y:auto}
 .ac .ai{padding:11px 13px;cursor:pointer;border-bottom:1px solid var(--line);display:flex;gap:10px;align-items:flex-start}
@@ -221,7 +231,12 @@ details[open] summary::before{content:"–"}
       <button class="geo" id="geoBtn" title="Use my location">◎</button>
       <div id="acList" class="ac hidden"></div>
     </div>
-    <div id="locHint" class="lochint">Type a spot, then pick the exact match for accurate fish data.</div>
+    <div id="locHint" class="lochint">Type a spot and pick the exact match — or drop a pin for places the map doesn't name.</div>
+    <button id="mapToggle" class="maptoggle" type="button">📍 Drop a pin on the map</button>
+    <div id="mapWrap" class="mapwrap hidden">
+      <div id="map"></div>
+      <div class="maphelp">Tap the map to set your exact spot. Drag the pin to fine-tune.</div>
+    </div>
 
     <label class="lab" style="margin-top:16px">Water type <span style="color:var(--mute);font-weight:400;text-transform:none;letter-spacing:0">(fallback only)</span></label>
     <div class="chips" id="waterChips">
@@ -253,11 +268,11 @@ details[open] summary::before{content:"–"}
   <div id="results"></div>
 
   <div class="note" id="footNote">
-    <b>Prototype v004.</b> Location search (Open Street Map / Photon) finds ramps,
-    lakes, and addresses — pick the exact spot. Species are drawn from real
-    iNaturalist records near those coordinates, with live Open-Meteo weather.
-    Lure matching runs on an on-device rules engine. All data is free and key-free.
-    Next: vector-based lure matching, then optional AI-written tips.
+    <b>Prototype v005.</b> Search ramps, lakes, and addresses (OpenStreetMap / Photon),
+    drop a pin for spots the map doesn't name, or use GPS — search is biased toward
+    your area. Species come from real iNaturalist records near those coordinates, with
+    live Open-Meteo weather. Lure matching runs on an on-device rules engine. All free,
+    no keys. Next: vector-based lure matching, then optional AI-written tips.
   </div>
 </div>
 
@@ -345,10 +360,8 @@ $("geoBtn").addEventListener("click",()=>{
   if(!navigator.geolocation){alert("Geolocation not available");return;}
   $("geoBtn").textContent="…";
   navigator.geolocation.getCurrentPosition(async p=>{
-    const {latitude:lat,longitude:lon}=p.coords;
-    $("loc").value=`${lat.toFixed(3)}, ${lon.toFixed(3)}`;
     $("geoBtn").textContent="◎";
-    $("loc").dataset.lat=lat; $("loc").dataset.lon=lon;
+    await setPickedPoint(p.coords.latitude,p.coords.longitude,true);
   },()=>{$("geoBtn").textContent="◎";alert("Couldn't get location — type it instead.");});
 });
 
@@ -357,7 +370,29 @@ $("geoBtn").addEventListener("click",()=>{
   $("when").value=d.toISOString().slice(0,16);})();
 
 /* ---------- LOCATION: Photon geocoder (OSM, free, finds ramps/lakes/addresses) ---------- */
+let biasCenter=null;            // nudges search toward your area once we know roughly where you are
 function isLatLon(q){ return /^-?\d+(\.\d+)?\s*,\s*-?\d+(\.\d+)?$/.test(q); }
+
+// set the active fishing point (used by GPS + map pin); optionally reverse-geocode a friendly label
+async function setPickedPoint(lat,lon,reverse){
+  biasCenter={lat,lon};
+  const el=$("loc");
+  el.dataset.lat=lat; el.dataset.lon=lon;
+  let label=`📍 ${lat.toFixed(4)}, ${lon.toFixed(4)}`;
+  el.value=label; el.dataset.name=label; el.dataset.admin="";
+  hideAC();
+  if(reverse){
+    try{
+      const j=await (await fetch(`https://photon.komoot.io/reverse?lat=${lat}&lon=${lon}&lang=en`)).json();
+      if(j.features&&j.features[0]){
+        const L=photonLabel(j.features[0].properties);
+        const nm=L.main, ctx=L.ctx;
+        el.value = ctx?`📍 ${nm}, ${ctx}`:`📍 ${nm}`;
+        el.dataset.name=nm; el.dataset.admin=ctx||"";
+      }
+    }catch(e){}
+  }
+}
 
 function photonLabel(p){
   // build a readable name + context from OSM properties
@@ -370,7 +405,8 @@ function photonLabel(p){
 }
 
 async function photonSearch(q, limit){
-  const u=`https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&limit=${limit||6}&lang=en`;
+  let u=`https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&limit=${limit||6}&lang=en`;
+  if(biasCenter) u+=`&lat=${biasCenter.lat}&lon=${biasCenter.lon}&location_bias_scale=0.4`;
   const j=await (await fetch(u)).json();
   return (j.features||[]).map(f=>{
     const [lon,lat]=f.geometry.coordinates; const L=photonLabel(f.properties);
@@ -428,9 +464,38 @@ $("acList").addEventListener("click",e=>{
   $("loc").value = h.ctx ? `${h.main}, ${h.ctx}` : h.main;
   $("loc").dataset.lat=h.lat; $("loc").dataset.lon=h.lon;
   $("loc").dataset.name=h.main; $("loc").dataset.admin=h.ctx||"";
+  biasCenter={lat:h.lat,lon:h.lon};
   hideAC();
 });
 document.addEventListener("click",e=>{ if(!e.target.closest(".row")) hideAC(); });
+
+/* ---------- map pin-drop (Leaflet + free OSM tiles) ---------- */
+let zmap=null, zpin=null;
+function placePin(lat,lon,reverse){
+  if(!zpin){
+    zpin=L.marker([lat,lon],{draggable:true}).addTo(zmap);
+    zpin.on("dragend",()=>{ const ll=zpin.getLatLng(); setPickedPoint(ll.lat,ll.lng,true); });
+  } else zpin.setLatLng([lat,lon]);
+  setPickedPoint(lat,lon,reverse);
+}
+function initMap(){
+  if(zmap || typeof L==="undefined") return;
+  zmap=L.map("map",{zoomControl:true}).setView([39.5,-98.35],4); // CONUS default
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+    {maxZoom:19, attribution:"© OpenStreetMap"}).addTo(zmap);
+  zmap.on("click",e=>placePin(e.latlng.lat,e.latlng.lng,true));
+  // center near the user if we can, or on whatever's already picked
+  if($("loc").dataset.lat){ zmap.setView([+$("loc").dataset.lat,+$("loc").dataset.lon],13); placePin(+$("loc").dataset.lat,+$("loc").dataset.lon,false); }
+  else if(navigator.geolocation){ navigator.geolocation.getCurrentPosition(
+      p=>zmap.setView([p.coords.latitude,p.coords.longitude],12), ()=>{}); }
+  setTimeout(()=>zmap.invalidateSize(),250);
+}
+$("mapToggle").addEventListener("click",()=>{
+  const w=$("mapWrap"), open=w.classList.toggle("hidden")===false;
+  $("mapToggle").classList.toggle("on",open);
+  $("mapToggle").textContent = open ? "📍 Hide map" : "📍 Drop a pin on the map";
+  if(open) initMap();
+});
 
 /* ---------- SPECIES BY LOCATION: iNaturalist observations ---------- */
 // flatten curated species into one searchable list (keeps water tag)
