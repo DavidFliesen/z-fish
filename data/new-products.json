@@ -1,10 +1,10 @@
 {
-  "_comment": "New-from-Z-Man feed. For now this is maintained by hand. In a later phase, an automated monitor of the Z-Man new-products page will append entries here so the app stays current on its own. 'date' is optional (ISO yyyy-mm-dd) and lets the app sort newest-first.",
+  "_comment": "New-from-Z-Man feed. 'type' selects the icon (matches lure types: chatter/soft/swim/craw/shrimp/frog/jig). 'url' links to Z-Man's site — exact product page where known, otherwise a site search that reliably finds it. 'image' is optional: leave blank to show the branded icon, or add a URL you have the right to use to show a real photo. A later phase can have an automated monitor append entries here.",
   "newProducts": [
-    { "name": "ChatterBait EVO",   "category": "Wire Bait",            "date": "2026-01-15", "description": "Next-level bladed jig with a radical, unpredictable hunting action built for tournament performance." },
-    { "name": "SWAG LT Swimbait",  "category": "ElaZtech Swim",        "date": "2026-01-15", "description": "Wide, stable swim on an Over/Under line-through harness; 10X Tough body slides up the line on hookset." },
-    { "name": "PrawnstarZ",        "category": "Shrimp / Crab",        "date": "2026-01-15", "description": "Ultra-realistic shrimp action and 10X Tough durability to fool wary inshore predators." },
-    { "name": "Gobius Swimbait",   "category": "ElaZtech Swim",        "date": "2026-01-15", "description": "Goby-profile bait made to last and made to catch — a smallmouth & bottom-feeder favorite." },
-    { "name": "Graph ShadZ",       "category": "Forward-Facing Sonar", "date": "2026-01-15", "description": "Purpose-built minnow profile for FFS — track and trigger suspended fish you see on the graph." }
+    { "name": "ChatterBait EVO",  "category": "Wire Bait",            "type": "chatter", "url": "https://zmanfishing.com/products/chatterbait-elite-evo", "image": "", "date": "2026-01-15", "description": "Next-level bladed jig with a radical, unpredictable hunting action built for tournament performance." },
+    { "name": "SWAG LT Swimbait", "category": "ElaZtech Swim",        "type": "swim",    "url": "https://zmanfishing.com/search?q=SWAG+LT",            "image": "", "date": "2026-01-15", "description": "Wide, stable swim on an Over/Under line-through harness; 10X Tough body slides up the line on hookset." },
+    { "name": "PrawnstarZ",       "category": "Shrimp / Crab",        "type": "shrimp",  "url": "https://zmanfishing.com/search?q=PrawnstarZ",          "image": "", "date": "2026-01-15", "description": "Ultra-realistic shrimp action and 10X Tough durability to fool wary inshore predators." },
+    { "name": "Gobius Swimbait",  "category": "ElaZtech Swim",        "type": "swim",    "url": "https://zmanfishing.com/search?q=Gobius",              "image": "", "date": "2026-01-15", "description": "Goby-profile bait made to last and made to catch — a smallmouth & bottom-feeder favorite." },
+    { "name": "Graph ShadZ",      "category": "Forward-Facing Sonar", "type": "swim",    "url": "https://zmanfishing.com/search?q=Graph+ShadZ",         "image": "", "date": "2026-01-15", "description": "Purpose-built minnow profile for FFS — track and trigger suspended fish you see on the graph." }
   ]
 }
