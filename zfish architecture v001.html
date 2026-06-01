@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Z-Fish · System Schematic</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --abyss:#04141a; --deep:#072730; --panel:#0b3540; --line:#16505e;
+  --sonar:#3ff0c4; --sonar-dim:#1d8a78; --amber:#ffc24b; --red:#ff5252;
+  --violet:#9fb6ff; --ink:#dcf3ee; --mute:#7fb0aa;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--abyss);color:var(--ink);font-family:'Archivo',sans-serif}
+body{
+  background:
+    radial-gradient(120% 70% at 50% -5%, #0a3a44 0%, transparent 55%),
+    repeating-linear-gradient(0deg, rgba(63,240,196,.022) 0 1px, transparent 1px 3px),
+    var(--abyss);
+  padding:env(safe-area-inset-top) 14px calc(env(safe-area-inset-bottom) + 40px);
+}
+.wrap{max-width:680px;margin:0 auto}
+
+/* header */
+header{text-align:center;padding:30px 0 10px}
+.kicker{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:4px;color:var(--sonar-dim);text-transform:uppercase}
+h1{font-family:'Anton',sans-serif;font-size:34px;letter-spacing:1px;text-transform:uppercase;line-height:.95;margin-top:8px}
+h1 .z{color:var(--sonar)}
+.sub{font-family:'Space Mono',monospace;font-size:11px;color:var(--mute);letter-spacing:1.5px;margin-top:8px}
+
+/* tier panel */
+.tier{position:relative;border:1px solid var(--line);border-radius:16px;margin-top:18px;padding:15px 15px 16px;
+  background:linear-gradient(180deg,var(--deep),var(--panel));box-shadow:inset 0 1px 0 rgba(63,240,196,.06)}
+.tier.opt{border-style:dashed;opacity:.92;background:linear-gradient(180deg,#06222a,#0a2c35)}
+.thead{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:4px}
+.ttag{font-family:'Space Mono',monospace;font-size:9.5px;letter-spacing:2px;text-transform:uppercase;
+  padding:3px 8px;border-radius:6px;border:1px solid var(--line);color:var(--sonar)}
+.ttag.host{color:var(--sonar)} .ttag.store{color:var(--amber);border-color:#5a4a1f}
+.ttag.build{color:var(--violet);border-color:#33405e} .ttag.optt{color:var(--red);border-color:#5e2b2b}
+.tname{font-family:'Anton',sans-serif;font-size:19px;letter-spacing:.5px}
+.tnote{font-size:12.5px;color:#bfe0d9;line-height:1.5;margin:3px 0 12px}
+.tnote b{color:var(--sonar)}
+
+/* component chips */
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.cc{flex:1 1 calc(50% - 8px);min-width:150px;background:#031b22;border:1px solid var(--line);
+  border-radius:11px;padding:10px 11px}
+.cc .n{font-weight:700;font-size:13.5px;display:flex;align-items:center;gap:7px}
+.cc .n .d{width:8px;height:8px;border-radius:50%;flex:0 0 auto}
+.d.live{background:var(--sonar);box-shadow:0 0 7px var(--sonar)}
+.d.ext{background:var(--violet);box-shadow:0 0 7px var(--violet)}
+.d.file{background:var(--amber);box-shadow:0 0 7px var(--amber)}
+.d.once{background:#8aa0a0}
+.cc .x{font-size:11.5px;color:var(--mute);line-height:1.45;margin-top:4px}
+.cc .ph{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:1px;color:var(--sonar-dim);margin-top:6px;text-transform:uppercase}
+
+/* connector */
+.conn{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 0}
+.conn .ln{width:1px;height:14px;background:linear-gradient(180deg,var(--line),var(--sonar-dim))}
+.conn .lab{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:1.5px;color:var(--mute);text-transform:uppercase}
+.conn .arw{color:var(--sonar-dim);font-size:11px;line-height:1}
+
+/* flow strip */
+.flowsec{margin-top:26px}
+.flowtitle{font-family:'Anton',sans-serif;font-size:18px;letter-spacing:.5px;text-transform:uppercase;margin:0 2px 10px}
+.flow{display:flex;gap:8px;overflow-x:auto;padding-bottom:10px;-webkit-overflow-scrolling:touch}
+.flow::-webkit-scrollbar{height:4px}.flow::-webkit-scrollbar-thumb{background:var(--line);border-radius:4px}
+.step{flex:0 0 165px;border:1px solid var(--line);border-radius:12px;padding:11px;background:linear-gradient(180deg,var(--deep),var(--panel))}
+.step .num{font-family:'Space Mono',monospace;font-size:10px;color:var(--sonar);letter-spacing:1px}
+.step .st{font-weight:700;font-size:13px;margin-top:4px}
+.step .sd{font-size:11px;color:var(--mute);line-height:1.4;margin-top:3px}
+.step .src{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:.5px;margin-top:7px;color:var(--sonar-dim);text-transform:uppercase}
+
+/* legend */
+.legend{margin-top:24px;border:1px solid var(--line);border-radius:14px;padding:13px 15px;background:#06222a}
+.legend h3{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--mute);text-transform:uppercase;margin-bottom:9px}
+.legrow{display:flex;flex-wrap:wrap;gap:12px 18px}
+.leg{display:flex;align-items:center;gap:7px;font-size:12px;color:#cfe7e1}
+.leg .d{width:9px;height:9px;border-radius:50%}
+
+/* rule */
+.rule{margin-top:22px;border-left:3px solid var(--sonar);background:linear-gradient(90deg,rgba(63,240,196,.08),transparent);
+  border-radius:0 12px 12px 0;padding:13px 15px}
+.rule .h{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--sonar-dim);text-transform:uppercase}
+.rule p{font-size:13.5px;line-height:1.55;margin-top:5px;color:#d6efe8}
+.rule b{color:var(--sonar)}
+
+.foot{font-family:'Space Mono',monospace;font-size:10px;color:var(--mute);text-align:center;margin-top:26px;letter-spacing:1px}
+
+/* load animation */
+.tier,.flowsec,.legend,.rule{opacity:0;transform:translateY(10px);animation:rise .5s ease forwards}
+.tier:nth-child(2){animation-delay:.05s}.tier:nth-child(4){animation-delay:.12s}
+.tier:nth-child(6){animation-delay:.19s}.tier:nth-child(8){animation-delay:.26s}
+.flowsec{animation-delay:.32s}.legend{animation-delay:.38s}.rule{animation-delay:.42s}
+@keyframes rise{to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="kicker">Z-Fish · Target Architecture</div>
+    <h1><span class="z">System</span> Schematic</h1>
+    <div class="sub">What lives where · v001</div>
+  </header>
+
+  <!-- TIER 1: RUNTIME -->
+  <div class="tier">
+    <div class="thead"><span class="ttag host">Tier 01 · Runtime</span><span class="tname">The Browser</span></div>
+    <div class="tnote">Everything the user touches runs <b>here</b>, on their phone — served as static files. No server to crash, expire, or maintain.</div>
+    <div class="chips">
+      <div class="cc"><div class="n"><span class="d live"></span>Sonar UI + Rules Engine</div><div class="x">Input, scoring, bite window, rendering. Pure JavaScript.</div><div class="ph">Phase 0 · done</div></div>
+      <div class="cc"><div class="n"><span class="d ext"></span>Weather + Geocoding</div><div class="x">Live call to Open-Meteo. Free, no key.</div><div class="ph">Phase 0 · done</div></div>
+      <div class="cc"><div class="n"><span class="d ext"></span>Species by Location</div><div class="x">Live call to iNaturalist / GBIF — the black-drum fix.</div><div class="ph">Phase 2 · next</div></div>
+      <div class="cc"><div class="n"><span class="d live"></span>In-Browser Lure Match</div><div class="x">Cosine similarity over precomputed embeddings. ~50 items = trivial math, no server.</div><div class="ph">Phase 3</div></div>
+    </div>
+  </div>
+
+  <div class="conn"><span class="lab">reads / fetches</span><span class="ln"></span><span class="arw">▼</span></div>
+
+  <!-- TIER 2: STORAGE + HOST -->
+  <div class="tier">
+    <div class="thead"><span class="ttag store">Tier 02 · Storage + Host</span><span class="tname">GitHub Repo + Pages</span></div>
+    <div class="tnote">Your <b>database</b> and your host, in one place. Git is the version history; Pages serves it free, always on.</div>
+    <div class="chips">
+      <div class="cc"><div class="n"><span class="d file"></span>index.html</div><div class="x">The app. Becomes the live site at the Pages URL.</div><div class="ph">Phase 0 · done</div></div>
+      <div class="cc"><div class="n"><span class="d file"></span>data/ *.json</div><div class="x">species · lures · new-products. Edit in the web editor; the app updates.</div><div class="ph">Phase 1 · done</div></div>
+      <div class="cc"><div class="n"><span class="d file"></span>data/embeddings.json</div><div class="x">Vector for each lure, computed once and committed.</div><div class="ph">Phase 3</div></div>
+      <div class="cc"><div class="n"><span class="d file"></span>SCHEMA.md</div><div class="x">The data contract. Lifts cleanly into SQLite later.</div><div class="ph">Phase 1 · done</div></div>
+    </div>
+  </div>
+
+  <div class="conn"><span class="arw">▲</span><span class="ln"></span><span class="lab">files committed by</span></div>
+
+  <!-- TIER 3: BUILD-TIME -->
+  <div class="tier">
+    <div class="thead"><span class="ttag build">Tier 03 · Build-Time</span><span class="tname">Tools That Run Occasionally</span></div>
+    <div class="tnote">Not for users — these run <b>now and then</b> and leave behind files in the repo. This is where your Colab skills live.</div>
+    <div class="chips">
+      <div class="cc"><div class="n"><span class="d once"></span>Colab Notebook</div><div class="x">Embed the Z-Man catalog once with sentence-transformers → export embeddings.json → commit.</div><div class="ph">Phase 3 · run once</div></div>
+      <div class="cc"><div class="n"><span class="d once"></span>GitHub Action (scheduled)</div><div class="x">Scrapes Z-Man new products on a timer → commits updated new-products.json automatically.</div><div class="ph">Phase 4</div></div>
+    </div>
+  </div>
+
+  <div class="conn"><span class="lab">only if you add LLM prose</span><span class="ln"></span><span class="arw">▼</span></div>
+
+  <!-- TIER 4: OPTIONAL BACKEND -->
+  <div class="tier opt">
+    <div class="thead"><span class="ttag optt">Tier 04 · Optional</span><span class="tname">Tiny Serverless Function</span></div>
+    <div class="tnote">The <b>only</b> reason to add a backend: hiding an API key. Skip it unless you decide AI-written explanations are worth it.</div>
+    <div class="chips">
+      <div class="cc"><div class="n"><span class="d ext"></span>Key-Keeper Function</div><div class="x">Cloudflare Workers / Vercel / Netlify free tier. Browser calls it; it calls Groq with the secret key.</div><div class="ph">Phase 5 · maybe</div></div>
+      <div class="cc"><div class="n"><span class="d ext"></span>Llama 3.3 via Groq</div><div class="x">Writes the natural-language "why this lure" text instead of templates.</div><div class="ph">Phase 5 · maybe</div></div>
+    </div>
+  </div>
+
+  <!-- RUNTIME FLOW -->
+  <div class="flowsec">
+    <div class="flowtitle">Runtime Flow · one scan</div>
+    <div class="flow">
+      <div class="step"><div class="num">01</div><div class="st">Enter location</div><div class="sd">Lake, bay, town, or GPS.</div><div class="src">Browser</div></div>
+      <div class="step"><div class="num">02</div><div class="st">Geocode</div><div class="sd">Name → lat / lon.</div><div class="src">Open-Meteo</div></div>
+      <div class="step"><div class="num">03</div><div class="st">Weather</div><div class="sd">Temp, wind, cloud, pressure.</div><div class="src">Open-Meteo</div></div>
+      <div class="step"><div class="num">04</div><div class="st">Real species</div><div class="sd">What actually lives at those coords.</div><div class="src">iNaturalist / GBIF</div></div>
+      <div class="step"><div class="num">05</div><div class="st">Load data</div><div class="sd">species · lures · embeddings.</div><div class="src">GitHub Pages</div></div>
+      <div class="step"><div class="num">06</div><div class="st">Score + match</div><div class="sd">Bite window + best lures.</div><div class="src">Browser</div></div>
+      <div class="step"><div class="num">07</div><div class="st">Render</div><div class="sd">Fish, how-to, Z-Man picks.</div><div class="src">Browser</div></div>
+    </div>
+  </div>
+
+  <!-- LEGEND -->
+  <div class="legend">
+    <h3>Legend</h3>
+    <div class="legrow">
+      <div class="leg"><span class="d live"></span>Runs in the browser (always on)</div>
+      <div class="leg"><span class="d ext"></span>External free API</div>
+      <div class="leg"><span class="d file"></span>Static file in the repo</div>
+      <div class="leg"><span class="d once"></span>Build-time job (runs occasionally)</div>
+    </div>
+  </div>
+
+  <!-- DECISION RULE -->
+  <div class="rule">
+    <div class="h">The Decision Rule</div>
+    <p>For any new feature, ask: <b>can this run in the browser or be precomputed into a file?</b> If yes — and here it almost always is — it stays static on GitHub. A backend is a last resort, used for exactly one thing: keeping the LLM key secret.</p>
+  </div>
+
+  <div class="foot">Z-FISH · CIBOLA STUDIOS · BUILD SMART, STAY STATIC</div>
+</div>
+</body>
+</html>
