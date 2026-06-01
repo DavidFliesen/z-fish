@@ -281,7 +281,7 @@ details[open] summary::before{content:"–"}
   <div id="results"></div>
 
   <div class="note" id="footNote">
-    <b>Prototype v007.</b> Search, drop a pin, or use GPS. Species come from real
+    <b>Prototype v008.</b> Search, drop a pin, or use GPS. Species come from real
     iNaturalist records near those coordinates (worldwide, matched by feeding style
     where needed). If there's no lake, river, or fish record nearby, Z-Fish now says
     so instead of guessing. Live Open-Meteo weather; on-device rules engine; new-product
@@ -591,12 +591,11 @@ async function inatSpecies(lat,lon,radiusKm){
 // match observed fish to our curated species; return {present, extras}
 function matchSpecies(observed){
   const curated=allCurated();
-  const curatedSci=new Set(curated.map(s=>s.sci.toLowerCase()));
   const present=[]; const matchedIds=new Set();
   const attach=(sp,o)=>present.push({...sp,obsCount:o.count,photo:o.photo});
   const findBest=(pred)=>{ let b=null; observed.forEach(o=>{ if(pred(o)&&(!b||o.count>b.count)) b=o; }); return b; };
 
-  // pass 1 — exact scientific-name match
+  // pass 1 — exact scientific-name match (one observed record can only become one curated species)
   curated.forEach(sp=>{
     const o=findBest(o=>o.sci.toLowerCase()===sp.sci.toLowerCase());
     if(o){ attach(sp,o); matchedIds.add(sp.id); }
@@ -608,19 +607,13 @@ function matchSpecies(observed){
     const o=findBest(o=>o.genus.toLowerCase()===cg);
     if(o){ attach(sp,o); matchedIds.add(sp.id); }
   });
-  // pass 3 — genus match, but only to an observed fish that isn't itself one of our exact species
-  //          (so "largemouth observed" never drags in smallmouth, but a sunfish cousin can stand in for panfish)
-  curated.forEach(sp=>{
-    if(matchedIds.has(sp.id)) return;
-    const cg=(sp.sci.split(" ")[0]||"").toLowerCase();
-    const o=findBest(o=>o.genus.toLowerCase()===cg && !curatedSci.has(o.sci.toLowerCase()));
-    if(o){ attach(sp,o); matchedIds.add(sp.id); }
-  });
+  // Anything else observed (including same-genus cousins like spotted bass) is NOT forced onto a
+  // curated species — it flows to generalize() and shows under its own real name.
 
   const matchedGenera=new Set(present.map(p=>(p.sci.split(" ")[0]||"").toLowerCase()));
   const extras=observed
     .filter(o=>!matchedGenera.has(o.genus.toLowerCase()))
-    .sort((a,b)=>b.count-a.count).slice(0,6);
+    .sort((a,b)=>b.count-a.count).slice(0,12);
   return {present,extras};
 }
 
@@ -642,7 +635,7 @@ async function hasWaterNearby(lat,lon,radius){
 // -> otherwise tell the user there's no fishing spot here (e.g. a desert).
 async function resolveSpecies(lat,lon){
   let obs=[];
-  try{ obs=await inatSpecies(lat,lon,20); }catch(e){ obs=[]; }
+  try{ obs=await inatSpecies(lat,lon,15); }catch(e){ obs=[]; }
   if(obs.length>0){
     const m=matchSpecies(obs);
     const g=generalize(m.extras);
